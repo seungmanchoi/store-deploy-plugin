@@ -38,19 +38,32 @@ When deploying to both platforms, the plugin uses `deploy-ios` and `deploy-andro
 ```bash
 # Clone the repo
 git clone https://github.com/seungmanchoi/store-deploy-plugin.git ~/works/store-deploy-plugin
-
-# Register as plugin in Claude Code
-# Add to ~/.claude/plugins/ or use /plugins command
 ```
 
-Then add to your Claude Code settings (`~/.claude/settings.json` or project `.claude/settings.json`):
+Then add to your Claude Code settings (`~/.claude/settings.json`):
 
 ```json
 {
-  "plugins": [
-    "~/works/store-deploy-plugin"
-  ]
+  "extraKnownMarketplaces": {
+    "store-deploy": {
+      "source": {
+        "source": "directory",
+        "path": "~/works/store-deploy-plugin"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "store-deploy@store-deploy": true
+  }
 }
+```
+
+### Via `--plugin-dir` flag
+
+Alternatively, load the plugin directly when launching Claude Code:
+
+```bash
+claude --plugin-dir ~/works/store-deploy-plugin
 ```
 
 ### Prerequisites
