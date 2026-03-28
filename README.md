@@ -40,7 +40,8 @@ When deploying to both platforms, the plugin uses `deploy-ios` and `deploy-andro
 git clone https://github.com/seungmanchoi/store-deploy-plugin.git ~/works/store-deploy-plugin
 ```
 
-Then add to your Claude Code settings (`~/.claude/settings.json`):
+Then add to your Claude Code settings (`~/.claude/settings.json`).
+**Important**: Use an absolute path (not `~/`):
 
 ```json
 {
@@ -48,7 +49,7 @@ Then add to your Claude Code settings (`~/.claude/settings.json`):
     "store-deploy": {
       "source": {
         "source": "directory",
-        "path": "~/works/store-deploy-plugin"
+        "path": "/Users/yourname/works/store-deploy-plugin"
       }
     }
   },
@@ -58,7 +59,9 @@ Then add to your Claude Code settings (`~/.claude/settings.json`):
 }
 ```
 
-### Via `--plugin-dir` flag
+Restart Claude Code to load the plugin. Skills will be available as `/store-deploy:skill-name`.
+
+### Via `--plugin-dir` flag (development)
 
 Alternatively, load the plugin directly when launching Claude Code:
 

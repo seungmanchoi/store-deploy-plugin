@@ -1,82 +1,9 @@
 {
   "name": "store-deploy",
   "description": "Full App Store / Google Play publisher for Expo & React Native apps. Automates build, screenshots, metadata, store forms, binary submission, and AdMob setup.",
-  "version": "3.0.0",
+  "version": "1.0.0",
   "author": {
     "name": "Seungman Choi",
     "email": "blueng.choi@gmail.com"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/seungmanchoi/store-deploy-plugin"
-  },
-  "license": "MIT",
-  "keywords": [
-    "expo",
-    "react-native",
-    "app-store",
-    "google-play",
-    "fastlane",
-    "eas",
-    "deployment",
-    "screenshots",
-    "metadata",
-    "admob",
-    "claude-code",
-    "plugin"
-  ],
-  "skills": [
-    {
-      "name": "store-deploy",
-      "path": "skills/store-deploy/SKILL.md",
-      "description": "Main orchestrator for Expo app store deployment. Routes to sub-skills or runs full pipeline."
-    },
-    {
-      "name": "store-setup",
-      "path": "skills/store-setup/SKILL.md",
-      "description": "Install deployment prerequisites and create fastlane directory structure for Expo apps."
-    },
-    {
-      "name": "store-build",
-      "path": "skills/store-build/SKILL.md",
-      "description": "Build Expo app for production using EAS Build. Supports local and cloud builds for iOS and Android."
-    },
-    {
-      "name": "store-screenshots",
-      "path": "skills/store-screenshots/SKILL.md",
-      "description": "Generate and process store screenshots for App Store and Google Play."
-    },
-    {
-      "name": "store-metadata",
-      "path": "skills/store-metadata/SKILL.md",
-      "description": "Generate and upload store metadata in multiple languages."
-    },
-    {
-      "name": "store-forms",
-      "path": "skills/store-forms/SKILL.md",
-      "description": "Fill App Store Connect and Google Play Console forms via Python+Playwright automation."
-    },
-    {
-      "name": "store-submit",
-      "path": "skills/store-submit/SKILL.md",
-      "description": "Submit app binary to App Store and Google Play via EAS Submit."
-    },
-    {
-      "name": "store-admob",
-      "path": "skills/store-admob/SKILL.md",
-      "description": "Set up AdMob app and create ad units via Python+Playwright automation."
-    }
-  ],
-  "agents": [
-    {
-      "name": "deploy-ios",
-      "path": "agents/deploy-ios.md",
-      "description": "iOS-specific deployment agent for parallel platform processing."
-    },
-    {
-      "name": "deploy-android",
-      "path": "agents/deploy-android.md",
-      "description": "Android-specific deployment agent for parallel platform processing."
-    }
-  ]
+  }
 }
