@@ -165,16 +165,45 @@ Create placeholder files (title.txt, short_description.txt, full_description.txt
 
 ## Step 4: Update eas.json
 
-If `eas.json` has no `submit` section, merge:
+### 4-1. ASC API Key 파일 찾기
+
+App Store Connect API Key(.p8) 파일을 자동으로 찾는다:
+
+```bash
+# 1순위: fastlane/keys/ 내 symlink
+ls -la fastlane/keys/AuthKey_*.p8 2>/dev/null
+
+# 2순위: ~/works/common/ 디렉토리
+ls ~/works/common/AuthKey_*.p8 2>/dev/null
+
+# 3순위: 시스템 전체 검색
+find ~ -name "AuthKey_*.p8" -maxdepth 4 2>/dev/null
+```
+
+찾은 .p8 파일에서 Key ID를 추출한다 (파일명: `AuthKey_{KEY_ID}.p8`).
+
+**IMPORTANT: EAS CLI는 `~`를 resolve하지 못한다. 반드시 절대 경로로 변환해야 한다.**
+
+```bash
+# ~ → 절대 경로 변환
+ASC_KEY_PATH=$(find ~/works/common -name "AuthKey_*.p8" -maxdepth 1 2>/dev/null | head -1)
+RESOLVED_PATH=$(cd "$(dirname "$ASC_KEY_PATH")" && pwd)/$(basename "$ASC_KEY_PATH")
+echo $RESOLVED_PATH
+```
+
+### 4-2. eas.json submit 설정
+
+`eas.json`에 `submit` 섹션이 없으면, 위에서 찾은 경로와 Key ID로 설정한다:
+
 ```json
 {
   "submit": {
     "production": {
       "ios": {
         "appleId": "blue_eng@hanmail.net",
-        "ascApiKeyPath": "/Users/seungmanchoi/works/common/AuthKey_6FD6879KFW.p8",
+        "ascApiKeyPath": "{RESOLVED_ABSOLUTE_PATH_TO_P8}",
         "ascApiKeyIssuerId": "69a6de87-13e2-47e3-e053-5b8c7c11a4d1",
-        "ascApiKeyId": "6FD6879KFW"
+        "ascApiKeyId": "{KEY_ID_FROM_FILENAME}"
       },
       "android": {
         "serviceAccountKeyPath": "./fastlane/keys/play-store-service-account.json",
@@ -185,11 +214,9 @@ If `eas.json` has no `submit` section, merge:
 }
 ```
 
-**IMPORTANT: `ascApiKeyPath`는 반드시 절대 경로를 사용해야 합니다.**
-- `~/works/common/...` (X) — EAS CLI가 `~`를 resolve하지 못함
-- `/Users/seungmanchoi/works/common/...` (O) — 절대 경로 사용
+.p8 파일을 찾을 수 없으면 사용자에게 경로를 질문한다.
 
-Ask developer for `ascAppId` if missing (첫 제출 시 EAS가 자동 생성 가능).
+첫 제출 시 `ascAppId`가 없어도 EAS가 인터랙티브 모드에서 자동 생성 가능.
 
 ## Step 5: Report
 

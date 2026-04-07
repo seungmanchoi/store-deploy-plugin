@@ -12,22 +12,23 @@ If no build found, suggest running `/store-build` first.
 
 ## Step 2: Check eas.json Submit Config
 
-Verify `eas.json` has submit profiles with proper iOS credentials:
+Verify `eas.json` has submit profiles with iOS credentials (`ascApiKeyPath`, `ascApiKeyIssuerId`, `ascApiKeyId`).
 
-```json
-"ios": {
-  "appleId": "blue_eng@hanmail.net",
-  "ascApiKeyPath": "/Users/seungmanchoi/works/common/AuthKey_6FD6879KFW.p8",
-  "ascApiKeyIssuerId": "69a6de87-13e2-47e3-e053-5b8c7c11a4d1",
-  "ascApiKeyId": "6FD6879KFW"
-}
+If `ascApiKeyPath`가 없거나 파일이 존재하지 않으면:
+
+```bash
+# .p8 키 파일 자동 탐색
+ASC_KEY=$(find ~/works/common fastlane/keys -name "AuthKey_*.p8" -maxdepth 1 2>/dev/null | head -1)
+
+# 절대 경로로 변환 (EAS CLI는 ~를 resolve하지 못함)
+if [ -n "$ASC_KEY" ]; then
+  RESOLVED=$(cd "$(dirname "$ASC_KEY")" && pwd)/$(basename "$ASC_KEY")
+  echo "Found: $RESOLVED"
+fi
 ```
 
-**IMPORTANT: `ascApiKeyPath`는 반드시 절대 경로를 사용해야 합니다.**
-- `~/works/common/...` (X) — EAS CLI가 `~`를 resolve하지 못해 "File does not exist" 에러 발생
-- `/Users/seungmanchoi/works/common/...` (O) — 절대 경로 사용
-
-If `ascAppId` is needed and missing, 첫 제출 시 `eas submit`이 인터랙티브 모드에서 자동으로 ASC 앱을 생성할 수 있습니다.
+찾은 절대 경로를 `eas.json`의 `submit.production.ios.ascApiKeyPath`에 설정한다.
+파일을 찾을 수 없으면 사용자에게 경로를 질문한다.
 
 ## Step 3: Submit Binary
 
