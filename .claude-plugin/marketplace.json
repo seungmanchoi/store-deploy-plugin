@@ -1,0 +1,14 @@
+{
+  "name": "store-deploy-marketplace",
+  "owner": {
+    "name": "Seungman Choi"
+  },
+  "plugins": [
+    {
+      "name": "store-deploy",
+      "source": "./",
+      "description": "Full App Store / Google Play publisher for Expo & React Native apps",
+      "version": "1.0.0"
+    }
+  ]
+}
