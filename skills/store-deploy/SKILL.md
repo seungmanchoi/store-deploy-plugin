@@ -22,7 +22,7 @@ Detected: {name} v{version}
 
 Which action?
   1. setup        — Install prerequisites & setup fastlane
-  2. build        — EAS build (local or cloud)
+  2. build        — EAS build (local by default)
   3. screenshots  — Generate & process store screenshots
   4. metadata     — Generate & upload store metadata
   5. store-forms  — Fill store forms via browser (age rating, privacy, etc.)
@@ -44,7 +44,7 @@ Based on the selected action, invoke the corresponding skill:
 | Action | Skill | Notes |
 |--------|-------|-------|
 | setup | `/store-setup` | Always run first for new projects |
-| build | `/store-build {platform}` | Ask local vs cloud |
+| build | `/store-build {platform}` | Local by default, cloud only on request |
 | screenshots | `/store-screenshots {platform}` | Ask approach: simulator/ai/process |
 | metadata | `/store-metadata {platform}` | Generates + uploads |
 | store-forms | `/store-forms {platform}` | Requires browser login |
@@ -76,6 +76,7 @@ Between each step, report results. Ask "Continue? (y/n)" only if an error occurr
 
 When "status" is selected:
 ```bash
+ls build-output/ 2>/dev/null || echo "No local builds"
 eas build:list --limit 5 2>/dev/null || echo "eas-cli not installed"
 ls fastlane/metadata/ 2>/dev/null || echo "No metadata"
 ls fastlane/screenshots/ 2>/dev/null || echo "No screenshots"
