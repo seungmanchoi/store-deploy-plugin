@@ -142,7 +142,7 @@ Read the output file and confirm the IDs are populated. If any are empty, the sc
    - 문구는 앱마다 새로 쓴다. 형식 예시 (그대로 복사하지 않는다):
      "{앱이름} uses your device's advertising identifier to make the ads shown in this app more relevant — for example, showing ads for apps and games similar to {앱이름} instead of unrelated products — and to measure how many people install an app after seeing its ad. Ads still appear if you decline; they just won't be personalized."
    - `withLocalizedAttDescription.js` 로케일 테이블도 언어별로 같은 구성으로 채운다. 기본 placeholder 테이블을 그대로 두면 `.lproj` 에 상투 문구가 실려 같은 반려를 받는다. `app.config.ts` 만 고치는 것으로는 부족하다.
-4. **초기화 순서**: UMP 동의 → iOS ATT → `mobileAds().setRequestConfiguration()` → `mobileAds().initialize()`. 순서가 어긋나면 첫 광고 요청이 동의 정보를 반영하지 못한다. `_layout.tsx` 는 `initializeAdsWithConsent()` 만 await 한다.
+4. **초기화 순서**: UMP 동의 → iOS ATT → `mobileAds().setRequestConfiguration()` → `mobileAds().initialize()`. 순서가 어긋나면 첫 광고 요청이 동의 정보를 반영하지 못한다. `_layout.tsx` 는 `initializeAdsWithConsent()` 만 `void` 로 부른다 (await 하지 않는다. 첫 렌더를 막지 않는다).
    - AdMob Console → Privacy & messaging 에서 GDPR 메시지와 IDFA 메시지를 만들어 게시해야 동의 폼이 뜬다. 게시하지 않으면 `requestInfoUpdate()` 가 항상 not required 를 돌려준다.
    - Android 는 ATT 가 없고 `AD_ID` 권한이 자동으로 들어가므로 추가 작업이 없다.
 5. **인터스티셜 빈도 제한**: 앱 시작 후 최소 3분, N회 액션마다 1회 (기본 3회), 최소 60초 간격, 하루 최대 10회
