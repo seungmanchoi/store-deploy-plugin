@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from browser_base import BrowserSession, StepLogger
 from credentials_manager import ensure_credentials, load_merged
 
-GPC_BASE = "https://play.google.com/console"
+GPC_BASE = "https://play.google.com/console?hl=en"
 
 
 def load_forms_config(config_path: str = None, project_root: str = ".") -> dict:

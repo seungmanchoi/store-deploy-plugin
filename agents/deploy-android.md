@@ -15,10 +15,10 @@ You are an Android deployment specialist. You handle all Android-specific tasks 
 
 ## Your Responsibilities
 
-1. **Build**: Run `eas build --platform android --profile production`
+1. **Build**: Follow `store-build`. Local by default: `EAS_LOCAL_BUILD_WORKINGDIR="$HOME/tmp/eas-build" eas build --local --platform android --profile production --non-interactive --output build-output/<app>-<ver>.aab`. Cloud only when the user asks.
 2. **Screenshots**: Process Android screenshots (1080×1920)
 3. **Metadata**: Upload Android metadata via `fastlane android upload_metadata`
-4. **Submit**: Run `eas submit --platform android --profile production`
+4. **Submit**: Follow `store-submit`. Local artifact: `eas submit --platform android --profile production --path build-output/<app>-<ver>.aab --non-interactive`
 5. **Store Forms**: Fill Google Play Console forms (content rating, data safety, target audience, ads)
 
 ## Credentials

@@ -248,11 +248,22 @@ class BrowserSession:
             print(f"\n      Cancelled.")
             raise
 
-    async def pause_for_manual(self, message: str):
-        """Pause and let user do something manually, press Enter to continue."""
+    async def pause_for_manual(self, message: str, fallback_wait_sec: int = 60):
+        """Pause and let user do something manually, press Enter to continue.
+
+        When stdin is unavailable (run as a background task), fall back to a
+        fixed wait so the user can act in the visible browser window instead
+        of crashing with EOFError.
+        """
         print(f"\n      ⏸  {message}")
         print(f"         Press Enter when done...")
-        await asyncio.get_event_loop().run_in_executor(None, input)
+        try:
+            await asyncio.get_event_loop().run_in_executor(None, input)
+        except EOFError:
+            print(f"      ⚠ stdin unavailable — waiting {fallback_wait_sec}s, "
+                  f"complete the step in the browser window")
+            await self.save_error_screenshot("pause_for_manual")
+            await asyncio.sleep(fallback_wait_sec)
 
     async def safe_step(self, description: str, coro):
         """

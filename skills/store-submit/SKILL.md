@@ -1,14 +1,15 @@
 ---
 name: store-submit
 description: "Submit app binary to App Store and Google Play via EAS Submit. Handles submission configuration and post-submission metadata upload."
-argument-hint: "[ios|android|both]"
+argument-hint: "[ios|android|both] [artifact path]"
 ---
 
-## Step 1: Check Build
+## Step 1: Find the Binary
 
-Run `eas build:list --limit 3 --platform {platform}` to find the latest successful build.
+- Local build (default): use the `.ipa` / `.aab` path that `/store-build` reported. If none was given, take the newest file in `build-output/`.
+- Cloud build: run `eas build:list --limit 3 --platform {platform}` to find the latest successful build.
 
-If no build found, suggest running `/store-build` first.
+If no binary is found, suggest running `/store-build` first.
 
 ## Step 2: Check eas.json Submit Config
 
@@ -32,20 +33,18 @@ fi
 
 ## Step 3: Submit Binary
 
-**iOS:**
+Local artifact (default):
 ```bash
-eas submit --platform ios --profile production
+eas submit --platform ios --profile production --path build-output/<app>-<ver>.ipa --non-interactive
+eas submit --platform android --profile production --path build-output/<app>-<ver>.aab --non-interactive
 ```
 
-**Android:**
-```bash
-eas submit --platform android --profile production
-```
-
-If submitting a specific build:
+Cloud build:
 ```bash
 eas submit --platform {platform} --profile production --id {BUILD_ID}
 ```
+
+Apps without an EAS project upload through their fastlane lane instead (see `~/works/AGENTS.md`).
 
 ## Step 4: Post-Submission
 

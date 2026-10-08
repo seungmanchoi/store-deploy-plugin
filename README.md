@@ -20,12 +20,12 @@ Build → Screenshots → Metadata → Submit → Store Forms → Done
 |-------|-------------|
 | `/store-deploy` | Main orchestrator — routes to sub-skills or runs full pipeline |
 | `/store-setup` | Install prerequisites, create fastlane structure, configure credentials |
-| `/store-build` | EAS production build (local or cloud, iOS/Android) |
+| `/store-build` | Production build, iOS/Android. Local by default (`eas build --local`; fastlane for apps without an EAS project). EAS cloud only with `--cloud` |
 | `/store-screenshots` | Generate screenshots (simulator, AI, or existing) + resize & text overlay |
 | `/store-metadata` | Generate multilingual metadata + upload via fastlane |
 | `/store-forms` | Browser automation for store forms (age rating, privacy, data safety, etc.) |
-| `/store-submit` | Submit binary via EAS Submit + post-submission metadata upload |
-| `/store-admob` | Create AdMob app + ad units via browser automation |
+| `/store-submit` | Submit the local build (`eas submit --path`) or a cloud build, or use the fastlane upload lane for apps without an EAS project. Then upload metadata |
+| `/store-admob` | Create AdMob app + ad units (Python + Playwright). Pass `--ad-types` with the formats the app calls |
 
 ### Parallel Platform Processing
 
@@ -76,12 +76,13 @@ claude --plugin-dir ~/works/store-deploy-plugin
 | [EAS CLI](https://docs.expo.dev/eas/) | `npm install -g eas-cli` | Expo builds & submissions |
 | [Fastlane](https://fastlane.tools/) | `brew install fastlane` | Metadata & screenshot upload |
 | [Python 3 + Pillow](https://python-pillow.org/) | `pip3 install Pillow` | Screenshot resize & text overlay |
-| [agent-browser](https://github.com/nicepkg/agent-browser) | `brew install agent-browser && agent-browser install` | Store form & AdMob browser automation |
+| [Playwright for Python](https://playwright.dev/python/) | `pip3 install -r scripts/requirements.txt && python3 -m playwright install chromium` | Store form & AdMob browser automation (`scripts/*.py`) |
 
 Optional:
 | Tool | Purpose |
 |------|---------|
 | Xcode + iOS Simulator | Simulator-based screenshot capture |
+| [sim-use](https://github.com/lycorp-jp/sim-use) (`brew install lycorp-jp/tap/sim-use`) | Drives simulator/emulator screens for per-language capture |
 | nano-banana-mcp | AI-generated screenshots (Gemini) |
 | Playwright MCP | In-Claude browser automation |
 
@@ -106,13 +107,6 @@ Run `/store-setup` to auto-check and install missing tools.
 |-----|-------|
 | Service Account JSON | `~/works/common/works-488915-4f58ab8044c4.json` |
 | Service Account Email | `play-store-deploy@works-488915.iam.gserviceaccount.com` |
-
-### AdMob (Optional)
-
-For REST API access (instead of browser automation):
-1. Enable AdMob API at [Google API Console](https://console.cloud.google.com/apis)
-2. Create OAuth 2.0 client (Desktop app type)
-3. Save credentials to `~/works/common/admob_credentials.json`
 
 ## Screenshot Configuration
 
@@ -148,7 +142,8 @@ If `method` is not set, the skill will ask which approach to use.
 
 | Platform | Device | Dimensions |
 |----------|--------|------------|
-| iOS (required) | iPhone 6.7" | 1290 × 2796 px |
+| iOS (required) | iPhone 6.9" | 1320 × 2868 px |
+| iOS (required from April 2027) | iPhone Duo outer / inner | 1398 × 2034 / 2007 × 2853 px |
 | iOS (optional) | iPhone 6.5" | 1242 × 2688 px |
 | Android (recommended) | Phone | 1080 × 1920 px |
 
@@ -201,7 +196,7 @@ store-deploy-plugin/
 ├── skills/
 │   ├── store-deploy/SKILL.md              # Main orchestrator
 │   ├── store-setup/SKILL.md               # Prerequisites & fastlane setup
-│   ├── store-build/SKILL.md               # EAS build
+│   ├── store-build/SKILL.md               # Production build (local by default)
 │   ├── store-screenshots/SKILL.md         # Screenshot generation & processing
 │   ├── store-metadata/SKILL.md            # Metadata generation & upload
 │   ├── store-forms/SKILL.md               # Browser automation for store forms
@@ -210,8 +205,14 @@ store-deploy-plugin/
 ├── agents/
 │   ├── deploy-ios.md                      # iOS parallel deployment agent
 │   └── deploy-android.md                  # Android parallel deployment agent
-└── scripts/
-    └── process_screenshots.py             # Pillow screenshot processor
+└── scripts/                               # Python automation (no LLM tokens)
+    ├── admob_setup.py                     # AdMob app + ad units
+    ├── store_forms_ios.py                 # App Store Connect forms
+    ├── store_forms_android.py             # Play Console forms
+    ├── browser_base.py                    # Shared Playwright browser session
+    ├── credentials_manager.py             # Console login credentials
+    ├── process_screenshots.py             # Pillow screenshot processor
+    └── requirements.txt
 ```
 
 ## Usage
@@ -241,7 +242,7 @@ This runs the entire pipeline for both platforms.
 
 ```
 /store-deploy:store-setup
-/store-deploy:store-build ios --local
+/store-deploy:store-build ios            # local build (default); add --cloud for EAS cloud
 /store-deploy:store-screenshots --ai
 /store-deploy:store-metadata both
 /store-deploy:store-forms ios
@@ -255,17 +256,17 @@ The plugin follows a **CLI-first** approach:
 
 | Task | Method | Tool |
 |------|--------|------|
-| Build | CLI | `eas build` |
-| Submit binary | CLI | `eas submit` |
+| Build | CLI | `eas build --local` (cloud only on request) |
+| Submit binary | CLI | `eas submit --path <file>` |
 | Upload metadata | CLI | `fastlane deliver` / `supply` |
 | Upload screenshots | CLI | `fastlane deliver` / `supply` |
-| Age rating | **Browser** | Playwright MCP / agent-browser |
-| Privacy details | **Browser** | Playwright MCP / agent-browser |
-| Data safety form | **Browser** | Playwright MCP / agent-browser |
-| Content rating | **Browser** | Playwright MCP / agent-browser |
-| Export compliance | **Browser** | Playwright MCP / agent-browser |
-| IDFA declaration | **Browser** | Playwright MCP / agent-browser |
-| AdMob setup | **Browser** | Playwright MCP / agent-browser |
+| Age rating | **Browser** | Python + Playwright script |
+| Privacy details | **Browser** | Python + Playwright script |
+| Data safety form | **Browser** | Python + Playwright script |
+| Content rating | **Browser** | Python + Playwright script |
+| Export compliance | **Browser** | Python + Playwright script |
+| IDFA declaration | **Browser** | Python + Playwright script |
+| AdMob setup | **Browser** | Python + Playwright script |
 
 ## Troubleshooting
 
@@ -285,7 +286,7 @@ First AAB must be uploaded before metadata. Run `/store-deploy:store-submit andr
 
 ### Simulator screenshots fail
 ```bash
-xcrun simctl list devices available | grep "Pro Max"
+sim-use --version && sim-use devices   # sim-use installed and the device booted?
 ```
 
 ### Pillow font error
