@@ -41,7 +41,9 @@ async def create_admob_app(
     """
     log.step(f"Create AdMob App ({platform.upper()})")
 
-    await browser.navigate(f"{ADMOB_BASE}/v2/home")
+    # hl=en: AdMob console language follows the Google account setting (often ko),
+    # but all selectors in this script are English — force the English UI.
+    await browser.navigate(f"{ADMOB_BASE}/v2/home?hl=en")
     await asyncio.sleep(3)
 
     # Check login
