@@ -1,7 +1,7 @@
 {
   "name": "store-deploy",
   "description": "Full App Store / Google Play publisher for Expo & React Native apps. Automates build, screenshots, metadata, store forms, binary submission, and AdMob setup.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "Seungman Choi",
     "email": "blueng.choi@gmail.com"
