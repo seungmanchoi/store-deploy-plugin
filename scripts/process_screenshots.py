@@ -28,6 +28,19 @@ SIZES = {
     "ios_65": {"name": "iPhone 6.5\"", "width": 1242, "height": 2688},
     "ios_55": {"name": "iPhone 5.5\"", "width": 1242, "height": 2208},
     "android_phone": {"name": "Android Phone", "width": 1080, "height": 1920},
+    # Reuses iOS screenshots, center-cropped top/bottom to a 2:1 ratio
+    # (Google Play rejects screenshots taller than 2:1).
+    "android_cropped": {"name": "Android (cropped from iOS 6.7\")", "width": 1290, "height": 2580},
+}
+
+# Google Play requires full locale codes; config.json commonly uses short
+# codes shared with fastlane deliver (iOS). Map short -> Play Store code.
+ANDROID_LOCALE_ALIASES = {
+    "ko": "ko-KR",
+    "ja": "ja-JP",
+    "zh": "zh-CN",
+    "zh-Hans": "zh-CN",
+    "zh-Hant": "zh-TW",
 }
 
 DEFAULT_CONFIG = {
@@ -42,21 +55,34 @@ DEFAULT_CONFIG = {
     "font": None
 }
 
-FONT_PATHS = [
+LATIN_FONT_PATHS = [
     "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
     "/System/Library/Fonts/Supplemental/Arial.ttf",
-    "/System/Library/Fonts/AppleSDGothicNeo.ttc",
     "/System/Library/Fonts/Helvetica.ttc",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
 ]
 
+# Broad CJK + Latin + Hangul coverage, needed for any ja/zh/ko text overlay
+# (plain Arial/Helvetica render CJK glyphs as tofu boxes).
+CJK_FONT_PATHS = [
+    "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+    "/System/Library/Fonts/AppleSDGothicNeo.ttc",
+    "/System/Library/Fonts/PingFang.ttc",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+]
 
-def find_font(config_font=None, size=56):
-    """Find a usable font."""
+FONT_PATHS = LATIN_FONT_PATHS  # backwards-compat alias
+
+
+def find_font(config_font=None, size=56, text=""):
+    """Find a usable font. Picks a CJK-capable font when `text` has non-ASCII chars."""
     if config_font and os.path.exists(config_font):
         return ImageFont.truetype(config_font, size)
 
-    for fp in FONT_PATHS:
+    needs_cjk = any(ord(ch) > 0x2FF for ch in text)
+    search_paths = CJK_FONT_PATHS if needs_cjk else LATIN_FONT_PATHS
+
+    for fp in search_paths:
         if os.path.exists(fp):
             try:
                 return ImageFont.truetype(fp, size)
@@ -64,6 +90,16 @@ def find_font(config_font=None, size=56):
                 continue
 
     return ImageFont.load_default()
+
+
+def resize_for_platform(img, platform_key, w, h):
+    """Resize (and center-crop, for android_cropped) an image to the target size."""
+    if platform_key == "android_cropped":
+        src_w, src_h = SIZES["ios_67"]["width"], SIZES["ios_67"]["height"]
+        img = img.resize((src_w, src_h), Image.LANCZOS)
+        top = (src_h - h) // 2
+        return img.crop((0, top, w, top + h))
+    return img.resize((w, h), Image.LANCZOS)
 
 
 def add_text_overlay(img, text, config):
@@ -74,7 +110,7 @@ def add_text_overlay(img, text, config):
     draw = ImageDraw.Draw(img)
     w, h = img.size
     font_size = config.get("fontSize", 56)
-    font = find_font(config.get("font"), font_size)
+    font = find_font(config.get("font"), font_size, text=text)
     overlay_h = config.get("overlayHeight", 200)
 
     # Semi-transparent overlay background
@@ -121,10 +157,12 @@ def process_platform(platform_key, source_dir, config, project_root):
     for lang, lang_texts in texts.items():
         if is_ios:
             # fastlane deliver format: fastlane/screenshots/{lang}/
-            out_dir = project_root / "fastlane" / "screenshots" / lang
+            out_lang = lang
+            out_dir = project_root / "fastlane" / "screenshots" / out_lang
         else:
-            # fastlane supply format
-            out_dir = project_root / "fastlane" / "metadata" / "android" / lang / "images" / "phoneScreenshots"
+            # fastlane supply format (needs full Play Store locale codes)
+            out_lang = ANDROID_LOCALE_ALIASES.get(lang, lang)
+            out_dir = project_root / "fastlane" / "metadata" / "android" / out_lang / "images" / "phoneScreenshots"
 
         out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -132,7 +170,7 @@ def process_platform(platform_key, source_dir, config, project_root):
             img = Image.open(img_path)
 
             # Resize to exact dimensions
-            img = img.resize((w, h), Image.LANCZOS)
+            img = resize_for_platform(img, platform_key, w, h)
 
             # Add text overlay
             text = lang_texts[i] if i < len(lang_texts) else ""
@@ -147,7 +185,7 @@ def process_platform(platform_key, source_dir, config, project_root):
                 img = img.convert("RGB")
             img.save(out_path, "PNG")
             processed += 1
-            print(f"  [{lang}] {out_name} → {w}x{h}")
+            print(f"  [{out_lang}] {out_name} → {w}x{h}")
 
     # If no texts/langs configured, process without overlay
     if not texts:
@@ -179,6 +217,12 @@ def main():
     parser.add_argument("--source-android", default="screenshots/android", help="Android source directory")
     parser.add_argument("--config", default="screenshots/config.json", help="Config file path")
     parser.add_argument("--project", default=".", help="Project root directory")
+    parser.add_argument(
+        "--android-crop",
+        action="store_true",
+        help="Derive Android screenshots from screenshots/ios instead of screenshots/android, "
+             "center-cropping the 6.7\" iOS frame to a 2:1 ratio",
+    )
     args = parser.parse_args()
 
     project_root = Path(args.project).resolve()
@@ -201,9 +245,14 @@ def main():
         total += process_platform("ios_67", source, config, project_root)
 
     if args.platform in ("android", "both"):
-        print(f"\n=== Android Screenshots (1080×1920) ===")
-        source = project_root / args.source_android
-        total += process_platform("android_phone", source, config, project_root)
+        if args.android_crop:
+            print(f"\n=== Android Screenshots (1290×2580, cropped from iOS) ===")
+            source = project_root / args.source_ios
+            total += process_platform("android_cropped", source, config, project_root)
+        else:
+            print(f"\n=== Android Screenshots (1080×1920) ===")
+            source = project_root / args.source_android
+            total += process_platform("android_phone", source, config, project_root)
 
     print(f"\n[✓] Processed {total} screenshots total")
 
