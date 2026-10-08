@@ -45,7 +45,7 @@ Before ANY deployment action, verify:
 - **Always** check `git status` before building — warn about uncommitted changes.
 - **Google Play ordering**: First AAB must be uploaded before metadata. Run submit before metadata for new apps.
 - **Browser login required**: For `store-forms` and `store-admob`, user must be logged into the console first.
-- **Screenshot dimensions**: iOS requires EXACT 1290×2796 for 6.7". Use `scripts/process_screenshots.py` for resizing.
+- **Screenshot dimensions**: iOS requires EXACT sizes: 1320×2868 (6.9"), iPhone Duo 1398×2034 outer / 2007×2853 inner (required from April 2027). Use `scripts/process_screenshots.py` for resizing.
 - **CLI first, browser fallback**: Always try CLI/API approaches first. Use agent-browser only for tasks that cannot be done via CLI (store forms, AdMob setup, content rating, etc.).
 - **Parallel when possible**: Use `deploy-ios` and `deploy-android` subagents to run platform-specific tasks in parallel.
 

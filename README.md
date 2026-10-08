@@ -82,6 +82,7 @@ Optional:
 | Tool | Purpose |
 |------|---------|
 | Xcode + iOS Simulator | Simulator-based screenshot capture |
+| [sim-use](https://github.com/lycorp-jp/sim-use) (`brew install lycorp-jp/tap/sim-use`) | Drives simulator/emulator screens for per-language capture |
 | nano-banana-mcp | AI-generated screenshots (Gemini) |
 | Playwright MCP | In-Claude browser automation |
 
@@ -141,7 +142,8 @@ If `method` is not set, the skill will ask which approach to use.
 
 | Platform | Device | Dimensions |
 |----------|--------|------------|
-| iOS (required) | iPhone 6.7" | 1290 × 2796 px |
+| iOS (required) | iPhone 6.9" | 1320 × 2868 px |
+| iOS (required from April 2027) | iPhone Duo outer / inner | 1398 × 2034 / 2007 × 2853 px |
 | iOS (optional) | iPhone 6.5" | 1242 × 2688 px |
 | Android (recommended) | Phone | 1080 × 1920 px |
 
@@ -284,7 +286,7 @@ First AAB must be uploaded before metadata. Run `/store-deploy:store-submit andr
 
 ### Simulator screenshots fail
 ```bash
-xcrun simctl list devices available | grep "Pro Max"
+sim-use --version && sim-use devices   # sim-use installed and the device booted?
 ```
 
 ### Pillow font error
